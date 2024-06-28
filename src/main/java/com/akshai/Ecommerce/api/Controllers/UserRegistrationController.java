@@ -1,6 +1,5 @@
 package com.akshai.Ecommerce.api.Controllers;
 
-import com.akshai.Ecommerce.Models.ProductUser;
 import com.akshai.Ecommerce.Service.RegisterUserService;
 import com.akshai.Ecommerce.api.Models.RegistrationBody;
 import org.springframework.beans.factory.annotation.Autowired;
