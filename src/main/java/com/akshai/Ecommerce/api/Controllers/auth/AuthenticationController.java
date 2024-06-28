@@ -1,16 +1,16 @@
 package com.akshai.Ecommerce.api.Controllers.auth;
 
+import com.akshai.Ecommerce.Models.LocalUser;
 import com.akshai.Ecommerce.Service.UserService;
 import com.akshai.Ecommerce.api.Models.LoginBody;
 import com.akshai.Ecommerce.api.Models.LoginResponse;
 import com.akshai.Ecommerce.api.Models.RegistrationBody;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cglib.core.Local;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 @RestController
@@ -38,5 +38,10 @@ public class AuthenticationController {
         LoginResponse loginresponse=new LoginResponse();
         loginresponse.setJwt(jwt);
         return ResponseEntity.ok(loginresponse);
+    }
+
+    @GetMapping("/me")
+    public LocalUser getLoaclUser(@AuthenticationPrincipal LocalUser user){
+        return user;
     }
 }
