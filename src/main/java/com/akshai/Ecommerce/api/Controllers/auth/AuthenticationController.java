@@ -1,6 +1,6 @@
-package com.akshai.Ecommerce.api.Controllers;
+package com.akshai.Ecommerce.api.Controllers.auth;
 
-import com.akshai.Ecommerce.Service.RegisterUserService;
+import com.akshai.Ecommerce.Service.UserService;
 import com.akshai.Ecommerce.api.Models.RegistrationBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,12 +11,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
-
 @RestController
 @RequestMapping("/auth")
-public class UserRegistrationController{
+public class AuthenticationController {
     @Autowired
-    private RegisterUserService registerservice;
+    private UserService registerservice;
 
     @PostMapping("/register")
     public ResponseEntity registerUser(@Valid @RequestBody RegistrationBody registeruser){
