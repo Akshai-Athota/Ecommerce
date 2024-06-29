@@ -43,6 +43,7 @@ public class LocalUser {
     @Column(name = "last_name", nullable = false)
     private String lastName;
     /** The addresses associated with the user. */
+
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Address> addresses = new ArrayList<>();
