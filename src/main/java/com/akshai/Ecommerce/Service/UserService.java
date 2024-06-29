@@ -22,6 +22,7 @@ public class UserService {
     private JWTService jwtService;
 
     public LocalUser registerUserDetails(RegistrationBody registeruser) throws UserAlreadyExistsException {
+        System.out.println(registeruser);
         if(userRepo.findByUsernameIgnoreCase(registeruser.getUsername()).isPresent() ||
                 userRepo.findByEmailIgnoreCase(registeruser.getEmail()).isPresent()){
             throw new UserAlreadyExistsException();
@@ -30,9 +31,10 @@ public class UserService {
         LocalUser user=new LocalUser();
         user.setUsername(registeruser.getUsername());
         user.setEmail(registeruser.getEmail());
-        user.setFirstName(registeruser.getFirstname());
-        user.setLastName(registeruser.getLastname());
+        user.setFirstName(registeruser.getFirstName());
+        user.setLastName(registeruser.getLastName());
         user.setPassword(encryptionService.encryptPassword(registeruser.getPassword()));
+        System.out.println(user);
         return userRepo.save(user);
     }
 
