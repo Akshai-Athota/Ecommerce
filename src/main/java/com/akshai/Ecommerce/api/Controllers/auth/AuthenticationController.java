@@ -1,5 +1,8 @@
 package com.akshai.Ecommerce.api.Controllers.auth;
 
+import com.akshai.Ecommerce.Exception.EmailFailureException;
+import com.akshai.Ecommerce.Exception.UserAlreadyExistsException;
+import com.akshai.Ecommerce.Exception.UserNotVerifiedException;
 import com.akshai.Ecommerce.Models.LocalUser;
 import com.akshai.Ecommerce.Service.UserService;
 import com.akshai.Ecommerce.api.Models.LoginBody;
@@ -24,20 +27,47 @@ public class AuthenticationController {
         try {
             userservice.registerUserDetails(registeruser);
             return ResponseEntity.ok().build();
-        }catch (Exception e){
+        }catch (UserAlreadyExistsException e){
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }catch (EmailFailureException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> authenicateUser(@RequestBody LoginBody loginbody){
-        String jwt=userservice.authenticateUser(loginbody);
-        if(jwt == null){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    public ResponseEntity<LoginResponse> authenicateUser(@RequestBody LoginBody loginBody){
+        String jwt = null;
+        try {
+            jwt = userservice.loginUser(loginBody);
+        } catch (UserNotVerifiedException ex) {
+            LoginResponse response = new LoginResponse();
+            response.setSuccess(false);
+            String reason = "USER_NOT_VERIFIED";
+            if (ex.isNewEmailSent()) {
+                reason += "_EMAIL_RESENT";
+            }
+            response.setFailureReason(reason);
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+        } catch (EmailFailureException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        LoginResponse loginresponse=new LoginResponse();
-        loginresponse.setJwt(jwt);
-        return ResponseEntity.ok(loginresponse);
+        if (jwt == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } else {
+            LoginResponse response = new LoginResponse();
+            response.setJwt(jwt);
+            response.setSuccess(true);
+            return ResponseEntity.ok(response);
+        }
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity verifyEmail(@RequestParam String token) {
+        if (userservice.verifyUser(token)) {
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
     }
 
     @GetMapping("/me")
