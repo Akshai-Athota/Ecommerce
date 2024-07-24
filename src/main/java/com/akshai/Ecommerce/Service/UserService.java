@@ -1,6 +1,7 @@
 package com.akshai.Ecommerce.Service;
 
 import com.akshai.Ecommerce.Exception.EmailFailureException;
+import com.akshai.Ecommerce.Exception.EmailNotFoundException;
 import com.akshai.Ecommerce.Exception.UserAlreadyExistsException;
 import com.akshai.Ecommerce.Exception.UserNotVerifiedException;
 import com.akshai.Ecommerce.Models.LocalUser;
@@ -8,9 +9,11 @@ import com.akshai.Ecommerce.Models.VerificationToken;
 import com.akshai.Ecommerce.Repositories.LocalUserRepository;
 import com.akshai.Ecommerce.Repositories.VerificationTokenRepository;
 import com.akshai.Ecommerce.api.Models.LoginBody;
+import com.akshai.Ecommerce.api.Models.PasswordResetBody;
 import com.akshai.Ecommerce.api.Models.RegistrationBody;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 
 
@@ -99,5 +102,31 @@ public class UserService {
             }
         }
         return false;
+    }
+
+    public void forgotPassword(String email) throws EmailFailureException, EmailNotFoundException {
+        Optional<LocalUser> opUser = userRepo.findByEmailIgnoreCase(email);
+        if(opUser.isPresent()){
+            LocalUser user =opUser.get();
+            String token = jwtService.generatePasswordVerificationTokenJWT(user);
+            emailService.sendPasswordResetEmail(user,token);
+        }
+        else{
+            throw new EmailNotFoundException();
+        }
+    }
+
+    public void resetPassword(PasswordResetBody passwordBody){
+        String email = jwtService.getPasswordEmail(passwordBody.getToken());
+        Optional<LocalUser> opUser = userRepo.findByEmailIgnoreCase(email);
+        if(opUser.isPresent()){
+            LocalUser user = opUser.get();
+            user.setPassword(encryptionService.encryptPassword(passwordBody.getPassword()));
+            userRepo.save(user);
+        }
+    }
+
+    public boolean userHasPermission(LocalUser user,Long id){
+        return user.getId() == id;
     }
 }

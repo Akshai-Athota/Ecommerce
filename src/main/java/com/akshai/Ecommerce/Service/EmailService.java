@@ -1,6 +1,7 @@
 package com.akshai.Ecommerce.Service;
 
 import com.akshai.Ecommerce.Exception.EmailFailureException;
+import com.akshai.Ecommerce.Models.LocalUser;
 import com.akshai.Ecommerce.Models.VerificationToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,25 +16,41 @@ public class EmailService {
     private String fromAddress;
 
     @Value("${app.frontend.url}")
-    private String serverUrl;
+    private String url;
 
     @Autowired
     private JavaMailSender javaMailSender;
 
-    private SimpleMailMessage makeMailMessage(){
-        SimpleMailMessage msg=new SimpleMailMessage();
-        msg.setFrom(fromAddress);
-        msg.setSubject("Verify your email to active your account.");
-        return msg;
+    private SimpleMailMessage makeMailMessage() {
+        SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
+        simpleMailMessage.setFrom(fromAddress);
+        return simpleMailMessage;
     }
 
-    public void sendVerificationEmail(VerificationToken token) throws EmailFailureException{
-        SimpleMailMessage msg=makeMailMessage();
-        msg.setTo(token.getUser().getEmail());
-        msg.setText("Please follow the link below to verify your email to active your account.\n" +
-                serverUrl + "/auth/verify?token=" + token.getToken());
+
+    public void sendVerificationEmail(VerificationToken verificationToken) throws EmailFailureException {
+        SimpleMailMessage message = makeMailMessage();
+        message.setTo(verificationToken.getUser().getEmail());
+        message.setSubject("Verify your email to active your account.");
+        message.setText("Please follow the link below to verify your email to active your account.\n" +
+                url + "/auth/verify?token=" + verificationToken.getToken());
         try {
-            javaMailSender.send(msg);
+            javaMailSender.send(message);
+        } catch (MailException ex) {
+            throw new EmailFailureException();
+        }
+    }
+
+
+    public void sendPasswordResetEmail(LocalUser user, String token) throws EmailFailureException {
+        SimpleMailMessage message = makeMailMessage();
+        message.setTo(user.getEmail());
+        message.setSubject("Your password reset request link.");
+        message.setText("You requested a password reset on our website. Please " +
+                "find the link below to be able to reset your password.\n" + url +
+                "/auth/reset?token=" + token);
+        try {
+            javaMailSender.send(message);
         } catch (MailException ex) {
             throw new EmailFailureException();
         }
